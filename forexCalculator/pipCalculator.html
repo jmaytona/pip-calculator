@@ -1,0 +1,194 @@
+<style>
+    #conversionPrice{
+        border: 0;
+        box-shadow: none;
+    }
+    #pipValue{
+        border-color: #ed1c24;
+        color: #ed1c24;
+        text-align: center;
+        font-size:24px;
+        height: 60px;
+    }
+    #calculate {
+        background-color: #00a658;
+        color: #fff;
+        border-color: #00a658;
+        -webkit-box-shadow: none;
+        -moz-box-shadow: none;
+        box-shadow: none;
+        height: 70px;
+        width: 140px;
+        display: block;
+        margin: auto;
+    }
+    #calculate:hover {
+        filter: brightness(150%);
+        box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+    }
+    .modal-header {
+        background-color: #ed1c24;
+        color: #fff;
+    }
+    .modal-footer {
+        background-color: #ed1c24;
+        color: #fff;
+    }
+    .modal-body {
+        background-color: #333; 
+    }
+    label {
+        color: #fff;
+    }
+    .form-control:focus {
+        border-color: #ed1c24;
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(255, 0, 0, 0.6);
+    }
+    option {
+        background-color: #ed1c24 !important;
+        color: #fff;
+    }
+
+</style>
+    
+        <!-- Button to Open the Modal -->
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">
+            Open Pip Calculator
+        </button>
+    
+    
+        <!-- The Modal -->
+        <div class="modal fade" id="myModal">
+            <div ng-controller="pipCalculatorController">
+            <div class="modal-dialog">
+              <div class="modal-content">
+          
+                <!-- Modal Header -->
+                <div class="modal-header">
+                  <h5 class="modal-title text-white">Pip Calculator</h5>
+                  <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+          
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <div class="container">
+                            <div class="row">
+                                <div class="col-sm-6 col-md-6 col-lg-6">
+                                    <div class="form-group">
+                                        <label for="currencyPair">Currency Pair:</label>
+                                            <select class="form-control" id="currencyPair">
+                                                <!-- Sample currency pair -->
+                                                <option value="USD">EUR/USD</option>
+                                                <option value="EUR">USD/EUR</option>
+                                                <option value="SGD">DKK/SGD</option>
+                                                <option value="DKK">SGD/DKK</option>
+                                                <option value="GOLD">GOLD</option>
+                                                <option value="SILVER">SILVER</option>
+                                                <option value="BRENT">BRENT</option>
+                                                <option value="WTI">WTI</option>
+                                                <option value="NATGAS">NATGAS</option>
+                                            </select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 col-md-6 col-lg-6">
+                                    <div class="form-group">
+                                        <label for="accountCurrency">Account Currency:</label>
+                                            <select class="form-control" id="accountCurrency">
+                                                <option ng-repeat="cur in currency" value="'{{cur.code}}'">{{cur.code}}</option>
+                                            </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6 col-md-6 col-lg-6">
+                                    <div class="form-group">
+                                        <label for="tradeSize">Trade Size:</label>
+                                        <input type="number" class="form-control" id="tradeSize" placeholder="0">
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 col-md-6 col-lg-6">
+                                    <div class="form-group">
+                                        <label for="conversionPrice">Current Conversion Price:</label>
+                                        <input type="text" class="form-control" id="conversionPrice" value="" readonly >
+                                    </div>
+                                </div>
+                            </div>
+                            <hr style="border-color: white;">
+                            <div class="row">
+                                <div class="col-sm-6 col-md-6 col-lg-6">
+                                    <br>
+                                    <button class="btn btn-primary" id="calculate">CALCULATE</button>
+                                </div>
+                                <div class="col-sm-6 col-md-6 col-lg-6">
+                                    <div class="form-group">
+                                        <label for="pipValue">Pip Value:</label>
+                                        <input type="text" class="form-control" id="pipValue" placeholder="0.00" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                    </div>
+                </div>
+          
+                <!-- Modal footer -->
+                <div class="modal-footer">
+                  By: ABFX
+                </div>
+          
+              </div>
+            </div>
+        </div>
+        </div>
+    <script>
+        $(document).ready(function(){
+
+            /* function currencyPairVal(){
+
+            } */
+            //Get Current conversion price
+            $(document).on('change', '#accountCurrency, #currencyPair' , function(){
+                $("#pipValue").val(0);
+                var cf = $('#accountCurrency').val();
+                var ct = $('#currencyPair').val();
+                if(ct == "GOLD" || ct == "SILVER" || ct == "BRENT" || ct == "WTI" || ct == "NATGAS"){
+                    ct = "USD";
+                }
+                //Below code is to remove (') character from select
+                cf = cf.replace(/'/g, "");
+                ct = ct.replace(/'/g, "");
+                //concat 2 currency name for the api call
+                var pair = String(cf+"_"+ct);
+                $.ajax({
+                    //concat selected currency to api url
+                    url: "http://free.currencyconverterapi.com/api/v5/convert?q="+cf+"_"+ct+"&compact=y",
+                    type: "get",
+                    success: function(response){
+                        /* alert(response[pair]['val']); */
+                        $('#conversionPrice').val(response[pair]['val']);
+                    }
+                });
+            });
+
+            $(document).on('change', '#tradeSize' , function(){
+                $("#pipValue").val(0);  
+            });
+            //Convert function
+            $(document).on('click', '#calculate', function(){
+                var currencyPair = $('#currencyPair').val();
+                var conversionPrice = $("#conversionPrice").val();
+                var tradeSize = $("#tradeSize").val();
+                var onePipDecimal = 0;
+                //Condition 
+                if(currencyPair == "GOLD" || currencyPair == "BRENT" || currencyPair == "WTI"){
+                    onePipDecimal = 0.01; 
+                }
+                else if(currencyPair == "SILVER" || currencyPair == "NATGAS" ){
+                    onePipDecimal = 0.001; 
+                }else{
+                    onePipDecimal = 0.0001; 
+                }
+                var value = (onePipDecimal * tradeSize) / conversionPrice;
+                $("#pipValue").val(value.toFixed(2));
+            });
+
+        });
+    </script>
